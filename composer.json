@@ -17,7 +17,11 @@
         "ext-libxml": "*"
     },
     "require-dev": {
+        "league/html-to-markdown": "^5.1",
         "phpunit/phpunit": "^11.0"
+    },
+    "suggest": {
+        "league/html-to-markdown": "Richer markdown dialect (nested lists, tables, code blocks) via the pluggable converter"
     },
     "autoload": {
         "psr-4": {

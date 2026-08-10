@@ -43,6 +43,11 @@ final class EpubToMarkdownTest extends TestCase
         $this->assertSame('Buku Uji', $result->title);
         $this->assertSame(['Penulis Uji'], $result->authors);
         $this->assertSame('id', $result->language);
+        // Embedded HTML in dc:description (a Calibre habit) comes out plain.
+        $this->assertSame('Deskripsi buku.', $result->description);
+        $this->assertSame('Penerbit Uji', $result->publisher);
+        $this->assertSame(['Bisnis'], $result->subjects);
+        $this->assertSame(['uji-1'], $result->identifiers);
         // Spine order wins over manifest order.
         $this->assertMatchesRegularExpression('/Bab Satu.*Bab Dua/s', $result->markdown);
         $this->assertStringContainsString('# Bab Satu', $result->markdown);
@@ -70,6 +75,33 @@ final class EpubToMarkdownTest extends TestCase
         $this->assertStringNotContainsString('Daftar isi palsu', $result->markdown);
     }
 
+    public function test_dotdot_href_resolves_against_opf_directory(): void
+    {
+        $path = $this->buildEpub(
+            chapters: [],
+            spineIds: ['naik'],
+            extraManifest: '<item id="naik" href="../text/ch1.xhtml" media-type="application/xhtml+xml"/>',
+            extraFiles: ['text/ch1.xhtml' => '<html><body><p>Isi di luar OEBPS.</p></body></html>'],
+        );
+
+        $result = (new EpubToMarkdown())->convert($path);
+
+        $this->assertStringContainsString('Isi di luar OEBPS.', $result->markdown);
+    }
+
+    public function test_duplicate_spine_entries_yield_one_chapter(): void
+    {
+        $path = $this->buildEpub(
+            chapters: ['ch1.xhtml' => '<html><body><p>Sekali saja.</p></body></html>'],
+            spineIds: ['c-ch1', 'c-ch1'],
+        );
+
+        $result = (new EpubToMarkdown())->convert($path);
+
+        $this->assertCount(1, $result->chapters);
+        $this->assertSame(1, substr_count($result->markdown, 'Sekali saja.'));
+    }
+
     public function test_custom_converter_is_used(): void
     {
         $path = $this->buildEpub(
@@ -80,6 +112,24 @@ final class EpubToMarkdownTest extends TestCase
         $result = (new EpubToMarkdown(fn (string $html): string => 'DIALEK-SENDIRI'))->convert($path);
 
         $this->assertSame('DIALEK-SENDIRI', $result->markdown);
+    }
+
+    public function test_league_html_to_markdown_plugs_in(): void
+    {
+        if (!class_exists(\League\HTMLToMarkdown\HtmlConverter::class)) {
+            $this->markTestSkipped('league/html-to-markdown tidak terpasang.');
+        }
+
+        $path = $this->buildEpub(
+            chapters: ['ch1.xhtml' => '<html><body><h1>Bab</h1><p>Isi <strong>tebal</strong>.</p></body></html>'],
+            spineIds: ['c-ch1'],
+        );
+
+        $league = new \League\HTMLToMarkdown\HtmlConverter(['strip_tags' => true, 'header_style' => 'atx']);
+        $result = (new EpubToMarkdown(fn (string $html): string => $league->convert($html)))->convert($path);
+
+        $this->assertStringContainsString('# Bab', $result->markdown);
+        $this->assertStringContainsString('**tebal**', $result->markdown);
     }
 
     public function test_not_a_zip_fails_readably(): void
@@ -134,6 +184,9 @@ final class EpubToMarkdownTest extends TestCase
                 <dc:title>Buku Uji</dc:title>
                 <dc:creator>Penulis Uji</dc:creator>
                 <dc:language>id</dc:language>
+                <dc:description>&lt;p&gt;Deskripsi  buku.&lt;/p&gt;</dc:description>
+                <dc:publisher>Penerbit Uji</dc:publisher>
+                <dc:subject>Bisnis</dc:subject>
               </metadata>
               <manifest>{$manifest}</manifest>
               <spine>{$spine}</spine>

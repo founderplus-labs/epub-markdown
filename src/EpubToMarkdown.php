@@ -66,6 +66,10 @@ final class EpubToMarkdown
                 title: $epub->title,
                 authors: $epub->authors,
                 language: $epub->language,
+                description: $epub->description,
+                publisher: $epub->publisher,
+                subjects: $epub->subjects,
+                identifiers: $epub->identifiers,
                 chapters: $chapters,
                 outline: $outline,
             );

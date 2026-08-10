@@ -21,12 +21,16 @@ use FounderplusLabs\EpubMarkdown\EpubToMarkdown;
 
 $result = (new EpubToMarkdown())->convert('/path/to/book.epub');
 
-$result->markdown;   // the whole book, spine order
-$result->title;      // "Buku Uji"
-$result->authors;    // ["Penulis Uji"]
-$result->language;   // "id"
-$result->chapters;   // Chapter[] — href, title, markdown per spine document
-$result->outline;    // [['level' => 1, 'title' => 'Bab Satu'], ...]
+$result->markdown;      // the whole book, spine order
+$result->title;         // "Buku Uji"
+$result->authors;       // ["Penulis Uji"]
+$result->language;      // "id"
+$result->description;   // blurb, plain text (embedded HTML stripped)
+$result->publisher;     // "Penerbit Uji"
+$result->subjects;      // ["Bisnis"] — dc:subject tags
+$result->identifiers;   // ["uji-1"] — ISBN, UUID, whatever the book declares
+$result->chapters;      // Chapter[] — href, title, markdown per spine document
+$result->outline;       // [['level' => 1, 'title' => 'Bab Satu'], ...]
 ```
 
 Failures throw `FounderplusLabs\EpubMarkdown\Exceptions\InvalidEpub` with a
@@ -44,6 +48,29 @@ $epub = new EpubToMarkdown(
 ```
 
 The callable receives each chapter's inner `<body>` HTML and returns markdown.
+
+### Pairs well with league/html-to-markdown
+
+Need a richer dialect — nested lists, tables, code blocks? Plug in
+[league/html-to-markdown](https://github.com/thephpleague/html-to-markdown),
+the ecosystem standard:
+
+```bash
+composer require league/html-to-markdown
+```
+
+```php
+use League\HTMLToMarkdown\HtmlConverter;
+
+$league = new HtmlConverter(['strip_tags' => true, 'header_style' => 'atx']);
+
+$result = (new EpubToMarkdown(
+    fn (string $html): string => $league->convert($html),
+))->convert('/path/to/book.epub');
+```
+
+The built-in converter stays the default because it is dependency-free and
+deterministic — but the seam is there when you want more.
 
 ### Laravel
 
@@ -64,8 +91,8 @@ $this->app->singleton(EpubToMarkdown::class);
 - **Nav documents are excluded.** Table-of-contents chrome
   (`properties="nav"`) never pollutes the content.
 - **The default converter is deliberately lite**: headings, paragraphs,
-  lists, blockquotes, emphasis, links, images-as-alt-text. Everything else is
-  stripped to text. EPUB chapter XHTML routinely carries doctypes and HTML
+  lists, blockquotes, emphasis, links, horizontal rules, images-as-alt-text.
+  Everything else is stripped to text. EPUB chapter XHTML routinely carries doctypes and HTML
   entities that make strict XML parsing miserable; a regex pass over a tame
   dialect is more robust than a DOM here.
 

@@ -1,0 +1,39 @@
+{
+    "name": "founderplus-labs/epub-markdown",
+    "description": "Convert EPUB books to clean Markdown - spine-ordered chapters, metadata, pluggable HTML converter. Zero dependencies beyond ext-zip and ext-dom.",
+    "keywords": ["epub", "markdown", "converter", "ebook", "laravel"],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Founderplus",
+            "homepage": "https://founderplus.id"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "ext-zip": "*",
+        "ext-dom": "*",
+        "ext-libxml": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "FounderplusLabs\\EpubMarkdown\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FounderplusLabs\\EpubMarkdown\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --colors=always tests"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable"
+}

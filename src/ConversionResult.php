@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+namespace FounderplusLabs\EpubMarkdown;
+
+/** What a conversion hands back. */
+final class ConversionResult
+{
+    /**
+     * @param list<Chapter> $chapters
+     * @param list<string>  $authors
+     * @param list<array{level:int, title:string}> $outline
+     */
+    public function __construct(
+        public readonly string $markdown,
+        public readonly ?string $title,
+        public readonly array $authors,
+        public readonly ?string $language,
+        public readonly array $chapters,
+        public readonly array $outline,
+    ) {}
+}

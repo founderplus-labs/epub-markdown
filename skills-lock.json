@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "self-improving-agent": {
+      "source": "zhaono1/agent-playbook",
+      "sourceType": "github",
+      "skillPath": "skills/self-improving-agent/SKILL.md",
+      "computedHash": "decfa65db0549f55550732652cb024efdafdf1bad0576e872933b88177279693"
+    }
+  }
+}
